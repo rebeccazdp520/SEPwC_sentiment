@@ -9,8 +9,18 @@ library(ggpubr)
 })
 
 load_data<-function(filename) {
+  #Read the csv file into the variable "data"
+  data <- read.csv(filename)
 
-    return()
+  #Remove the HTML formatting from the content column
+  data$content <- gsub("<[^>]+>", "", data$content)
+
+  #Update the date format to a compatible format
+  data$created_at <- ymd_hms(data$created_at)
+
+  #Only get the English toots and then update the data
+  data <- data %>% filter(language == "en")
+  return()
 }
 
 word_analysis<-function(toot_data, emotion) {
