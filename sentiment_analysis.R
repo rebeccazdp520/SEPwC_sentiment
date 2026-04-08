@@ -9,6 +9,7 @@ library(ggpubr)
 })
 
 
+
 load_data <- function(filename) {
   #Load the file into a variable called data. force the id column to be type character
   data <- read.csv(filename, colClasses = c("id" = "character"))
@@ -18,12 +19,28 @@ load_data <- function(filename) {
   data$created_at <- ymd_hms(data$created_at)
   #Only get the English toots
   data <- data[data$language == "en", ]
+  #Return the data
   return(data)
 }
 
 word_analysis<-function(toot_data, emotion) {
+  #Load the NRC lexicon
+  nrc <- get_sentiments("nrc")
+  #Filter the sentiments to emotions
+  nrc <- nrc[nrc$sentiment == emotion, ]
+  #Tokenise the toot text into individual words.
+  words <- toot_data |> unnest_tokens(word, content)
+  #Use an inner_join to keep only the words that appear in nrc and toots
+  emotion_words <- words |> inner_join(nrc, by = "word")
+  #Sorty by the mostcommon and then select the top 10
+  top_words <- emotion_words |>
+     group_by(word) |>
+     summarise(n = n()) |>
+     arrange(desc(n)) |>
+     slice_head(n = 10)
 
-    return()
+  result <- top_words %>% inner_join(emotion_words, by = "word")
+    return(result)
 }
 
 sentiment_analysis<-function(toot_data) {
